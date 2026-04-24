@@ -1,0 +1,61 @@
+{
+  "expo": {
+    "name": "Pick",
+    "slug": "pick",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FBF4E6"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.yourname.pick",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "PICK needs access to your photos so you can choose which ones to compare.",
+        "NSPhotoLibraryAddUsageDescription": "PICK can save your selected photo to your library."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FBF4E6"
+      },
+      "package": "com.yourname.pick",
+      "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "PICK needs access to your photos so you can choose which ones to compare."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "PICK needs access to your photos.",
+          "savePhotosPermission": "PICK can save your selected photo to your library.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ],
+      "expo-font",
+      "expo-asset"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "YOUR_EAS_PROJECT_ID"
+      }
+    }
+  }
+}
