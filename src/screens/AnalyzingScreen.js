@@ -18,13 +18,13 @@ export default function AnalyzingScreen({ navigation, route }) {
   const LINES = getLoadingLines(items.length);
 
   useEffect(() => {
-    const li = setInterval(() => setLineIndex(i => (i + 1) % LINES.length), 1400);
+    const li = setInterval(() => setLineIndex((i) => (i + 1) % LINES.length), 1400);
     return () => clearInterval(li);
   }, []);
 
   useEffect(() => {
-    if (!items.length) return;
-    const fi = setInterval(() => setFrameIndex(i => (i + 1) % items.length), 700);
+    if (items.length < 2) return;
+    const fi = setInterval(() => setFrameIndex((i) => (i + 1) % items.length), 700);
     return () => clearInterval(fi);
   }, [items]);
 
@@ -34,19 +34,22 @@ export default function AnalyzingScreen({ navigation, route }) {
       try {
         const results = await analyzeImages(items);
         if (cancelled) return;
+
         await incrementFreePicksUsed();
-        const lead = results[0];
+
+        const lead = results[0]; // best pick — ranked server-side
+
         await saveHistoryEntry({
           id: 'h_' + Date.now(),
           date: new Date().toISOString(),
           leadTitle: lead?.title || 'Pick',
           leadReason: lead?.reason || '',
           leadLabel: lead?.label || 'Best pick',
-          thumbnailUri: items[0]?.uri,
-          allIds: items.map(i => i.id),
+          thumbnailUri: lead?.uri || items[0]?.uri, // ← use the winner's URI, not always items[0]
+          allIds: items.map((i) => i.id),
           posted: false,
         });
-        // Pass both results AND original items so ResultsScreen can match URIs
+
         navigation.replace('Results', { results, items });
       } catch (err) {
         if (cancelled) return;
@@ -64,7 +67,9 @@ export default function AnalyzingScreen({ navigation, route }) {
       <View style={styles.errorScreen}>
         <Text style={styles.errorTitle}>Something went wrong</Text>
         <Text style={styles.errorBody}>{error}</Text>
-        <Text style={styles.errorBtn} onPress={() => navigation.goBack()}>Go back</Text>
+        <Text style={styles.errorBtn} onPress={() => navigation.goBack()}>
+          Go back
+        </Text>
       </View>
     );
   }
@@ -73,14 +78,28 @@ export default function AnalyzingScreen({ navigation, route }) {
     <View style={styles.screen}>
       <View style={styles.card}>
         {currentImage?.uri ? (
-          <Image source={{ uri: currentImage.uri }} style={styles.mainImage} resizeMode="cover" />
-        ) : <View style={styles.imagePlaceholder} />}
+          <Image
+            source={{ uri: currentImage.uri }}
+            style={styles.mainImage}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.imagePlaceholder} />
+        )}
         <View style={styles.overlay} />
         <View style={styles.stripWrap}>
           {items.length > 1 && (
             <View style={styles.strip}>
-              {items.slice(0, 4).map((item, i) => (
-                <Image key={item.id} source={{ uri: item.uri }} style={[styles.stripThumb, i === frameIndex % Math.min(items.length, 4) && styles.stripThumbActive]} resizeMode="cover" />
+              {items.slice(0, 5).map((item, i) => (
+                <Image
+                  key={item.id}
+                  source={{ uri: item.uri }}
+                  style={[
+                    styles.stripThumb,
+                    i === frameIndex % Math.min(items.length, 5) && styles.stripThumbActive,
+                  ]}
+                  resizeMode="cover"
+                />
               ))}
             </View>
           )}
@@ -94,18 +113,64 @@ export default function AnalyzingScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: COLORS.cream, padding: SPACING.xl },
-  card: { flex: 1, borderRadius: RADIUS.xl, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surfaceRaised },
+  card: {
+    flex: 1,
+    borderRadius: RADIUS.xl,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.surfaceRaised,
+  },
   mainImage: { ...StyleSheet.absoluteFillObject },
   imagePlaceholder: { ...StyleSheet.absoluteFillObject, backgroundColor: COLORS.surfaceRaised },
   overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.52)' },
-  stripWrap: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: SPACING.xl, paddingBottom: 28 },
+  stripWrap: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: SPACING.xl,
+    paddingBottom: 36,
+  },
   strip: { flexDirection: 'row', gap: 8, marginBottom: SPACING.xl },
-  stripThumb: { width: 56, height: 72, borderRadius: 10, opacity: 0.55, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
-  stripThumbActive: { opacity: 1, borderColor: 'rgba(255,255,255,0.44)' },
-  loadingLine: { fontSize: 28, fontWeight: '700', color: COLORS.textOnDark, letterSpacing: -0.6, lineHeight: 32, maxWidth: 260 },
-  loadingHint: { marginTop: 8, fontSize: 12, color: COLORS.textOnDarkSoft, letterSpacing: 2, textTransform: 'uppercase' },
-  errorScreen: { flex: 1, backgroundColor: COLORS.cream, alignItems: 'center', justifyContent: 'center', padding: 40 },
+  stripThumb: {
+    width: 52,
+    height: 66,
+    borderRadius: 10,
+    opacity: 0.5,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+  },
+  stripThumbActive: { opacity: 1, borderColor: 'rgba(255,255,255,0.5)' },
+  loadingLine: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: COLORS.textOnDark,
+    letterSpacing: -0.6,
+    lineHeight: 34,
+    maxWidth: 260,
+  },
+  loadingHint: {
+    marginTop: 8,
+    fontSize: 12,
+    color: COLORS.textOnDarkSoft,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+  },
+  errorScreen: {
+    flex: 1,
+    backgroundColor: COLORS.cream,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+  },
   errorTitle: { fontSize: 22, fontWeight: '700', color: COLORS.textPrimary, textAlign: 'center' },
-  errorBody: { marginTop: 12, fontSize: 14, lineHeight: 22, color: COLORS.textSecondary, textAlign: 'center' },
+  errorBody: {
+    marginTop: 12,
+    fontSize: 14,
+    lineHeight: 22,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+  },
   errorBtn: { marginTop: 28, fontSize: 15, fontWeight: '600', color: COLORS.green },
 });

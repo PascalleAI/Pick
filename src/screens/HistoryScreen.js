@@ -1,11 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  Image,
-  Pressable,
+  View, Text, ScrollView, StyleSheet, Image,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,15 +11,14 @@ import { getHistory } from '../utils/storage';
 function formatDate(isoString) {
   const date = new Date(isoString);
   const now = new Date();
-  const diffMs = now - date;
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
   if (diffDays === 0) return 'Today';
   if (diffDays === 1) return 'Yesterday';
   if (diffDays < 7) return `${diffDays} days ago`;
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export default function HistoryScreen({ navigation }) {
+export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +37,7 @@ export default function HistoryScreen({ navigation }) {
       <View style={styles.empty}>
         <Text style={styles.emptyTitle}>No picks yet</Text>
         <Text style={styles.emptyBody}>
-          Your past picks will show up here so you can review what you chose.
+          Your past picks will show up here so you can see what you've chosen.
         </Text>
       </View>
     );
@@ -60,13 +54,8 @@ export default function HistoryScreen({ navigation }) {
 
       <View style={styles.list}>
         {history.map((entry) => (
-          <Pressable
-            key={entry.id}
-            style={({ pressed }) => [styles.card, pressed && { opacity: 0.8 }]}
-            onPress={() => {
-              // Could navigate to a detail view in future
-            }}
-          >
+          // Not tappable — no detail screen yet. Plain View, not Pressable.
+          <View key={entry.id} style={styles.card}>
             <View style={styles.cardTop}>
               <Text style={styles.dateText}>{formatDate(entry.date)}</Text>
               <Tag>{entry.posted ? 'Posted' : 'Saved'}</Tag>
@@ -89,7 +78,7 @@ export default function HistoryScreen({ navigation }) {
                 </Text>
               </View>
             </View>
-          </Pressable>
+          </View>
         ))}
       </View>
     </ScrollView>
@@ -97,29 +86,11 @@ export default function HistoryScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: COLORS.cream,
-  },
-  content: {
-    paddingHorizontal: SPACING.xl,
-    paddingTop: SPACING.xl,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    letterSpacing: -0.7,
-  },
-  sub: {
-    marginTop: 6,
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.xl,
-  },
-  list: {
-    gap: SPACING.md,
-  },
+  screen: { flex: 1, backgroundColor: COLORS.cream },
+  content: { paddingHorizontal: SPACING.xl, paddingTop: SPACING.xl },
+  title: { fontSize: 26, fontWeight: '700', color: COLORS.textPrimary, letterSpacing: -0.7 },
+  sub: { marginTop: 6, fontSize: 14, color: COLORS.textSecondary, marginBottom: SPACING.xl },
+  list: { gap: SPACING.md },
   card: {
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.xl,
@@ -139,29 +110,16 @@ const styles = StyleSheet.create({
     color: COLORS.textDim,
     textTransform: 'uppercase',
   },
-  cardBody: {
-    flexDirection: 'row',
-    gap: SPACING.md,
-  },
-  thumbnail: {
-    width: 80,
-    height: 96,
-    borderRadius: RADIUS.md,
-  },
+  cardBody: { flexDirection: 'row', gap: SPACING.md },
+  thumbnail: { width: 80, height: 96, borderRadius: RADIUS.md },
   thumbnailPlaceholder: {
     width: 80,
     height: 96,
     borderRadius: RADIUS.md,
     backgroundColor: COLORS.surfaceRaised,
   },
-  cardText: {
-    flex: 1,
-  },
-  leadTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
+  cardText: { flex: 1 },
+  leadTitle: { fontSize: 17, fontWeight: '600', color: COLORS.textPrimary },
   leadLabel: {
     marginTop: 4,
     fontSize: 11,
@@ -169,12 +127,7 @@ const styles = StyleSheet.create({
     color: COLORS.textDim,
     textTransform: 'uppercase',
   },
-  leadReason: {
-    marginTop: 6,
-    fontSize: 13,
-    lineHeight: 19,
-    color: COLORS.textSecondary,
-  },
+  leadReason: { marginTop: 6, fontSize: 13, lineHeight: 19, color: COLORS.textSecondary },
   empty: {
     flex: 1,
     backgroundColor: COLORS.cream,
@@ -182,12 +135,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 40,
   },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    letterSpacing: -0.4,
-  },
+  emptyTitle: { fontSize: 20, fontWeight: '700', color: COLORS.textPrimary, letterSpacing: -0.4 },
   emptyBody: {
     marginTop: 10,
     fontSize: 14,
